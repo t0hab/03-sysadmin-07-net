@@ -79,7 +79,79 @@ show lldp traffic - Вывести суммарную информацию об 
 ---
 
 3. Какая технология используется для разделения L2 коммутатора на несколько виртуальных сетей? Какой пакет и команды есть в Linux для этого? Приведите пример конфига.
+### Ответ:
+Для разделения L2 коммутатора на несколько виртуальных сетей используется VLAN.
+Включение поддержки VLAN для debian, ubuntu `sudo apt-get install vlan`
+Добавление vlan в Linux с помощью утилиты vconfig.
+```bash
+vagrant@vagrant:~$ sudo vconfig add eth0 200
 
+Warning: vconfig is deprecated and might be removed in the future, please migrate to ip(route2) as soon as possible!
+
+vagrant@vagrant:~$ ifconfig -a
+eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet 10.0.2.15  netmask 255.255.255.0  broadcast 10.0.2.255
+        inet6 fe80::a00:27ff:feb1:285d  prefixlen 64  scopeid 0x20<link>
+        ether 08:00:27:b1:28:5d  txqueuelen 1000  (Ethernet)
+        RX packets 1468  bytes 434051 (434.0 KB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 994  bytes 130078 (130.0 KB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+eth0.200: flags=4098<BROADCAST,MULTICAST>  mtu 1500
+        ether 08:00:27:b1:28:5d  txqueuelen 1000  (Ethernet)
+        RX packets 0  bytes 0 (0.0 B)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 0  bytes 0 (0.0 B)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+lo: flags=73<UP,LOOPBACK,RUNNING>  mtu 65536
+        inet 127.0.0.1  netmask 255.0.0.0
+        inet6 ::1  prefixlen 128  scopeid 0x10<host>
+        loop  txqueuelen 1000  (Local Loopback)
+        RX packets 20  bytes 1856 (1.8 KB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 20  bytes 1856 (1.8 KB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+vagrant@vagrant:~$ 
+```
+Из вывода видно, что появился еще один логический интерфейс "eth0.200", который будет обрабатывать все пакеты, помеченные тегом 200 (принадлежащие сети VLAN200).
+
+Повесим ip-адрес на новый интерфейс "eth0.200".
+```bash
+vagrant@vagrant:~$ sudo ifconfig eth0.200 192.168.8.10 netmask 255.255.255.0 up
+vagrant@vagrant:~$ sudo ifconfig -a
+eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet 10.0.2.15  netmask 255.255.255.0  broadcast 10.0.2.255
+        inet6 fe80::a00:27ff:feb1:285d  prefixlen 64  scopeid 0x20<link>
+        ether 08:00:27:b1:28:5d  txqueuelen 1000  (Ethernet)
+        RX packets 1484  bytes 435171 (435.1 KB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 1013  bytes 131872 (131.8 KB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+eth0.200: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet 192.168.8.10  netmask 255.255.255.0  broadcast 192.168.8.255
+        inet6 fe80::a00:27ff:feb1:285d  prefixlen 64  scopeid 0x20<link>
+        ether 08:00:27:b1:28:5d  txqueuelen 1000  (Ethernet)
+        RX packets 0  bytes 0 (0.0 B)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 7  bytes 586 (586.0 B)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+lo: flags=73<UP,LOOPBACK,RUNNING>  mtu 65536
+        inet 127.0.0.1  netmask 255.0.0.0
+        inet6 ::1  prefixlen 128  scopeid 0x10<host>
+        loop  txqueuelen 1000  (Local Loopback)
+        RX packets 20  bytes 1856 (1.8 KB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 20  bytes 1856 (1.8 KB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+vagrant@vagrant:~$ 
+```
+На этом настройка завершена. Следует отметить, что после перезагрузки интерфейс "eth0.200" слетит.
 
 4. Какие типы агрегации интерфейсов есть в Linux? Какие опции есть для балансировки нагрузки? Приведите пример конфига.
 
