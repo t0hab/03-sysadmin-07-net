@@ -224,5 +224,8 @@ vagrant@vagrant:~$
 ---
 
 7. Как проверить ARP таблицу в Linux, Windows? Как очистить ARP кеш полностью? Как из ARP таблицы удалить только один нужный IP?
-
+### Ответ:
+* Как проверить ARP таблицу в Linux, Windows: `arp -a`
+* Как очистить ARP кеш полностью: `netsh interface ip delete arpcache`
+* Как из ARP таблицы удалить только один нужный IP: `arp -d`
 
